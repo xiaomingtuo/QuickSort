@@ -10,9 +10,9 @@ import java.io.OutputStreamWriter;
 import java.util.Random;
 
 public class RandomNumMaker {
-    public static String FILE_PATH = "D:\\num.txt";
-    public void makefile(int numLength) throws IOException {
-        File file = new File(FILE_PATH);
+
+    public void makefile(int numLength,String path) throws IOException {
+        File file = new File(path);
         Random random = new Random();
         int[] array = new int[numLength];
         BufferedWriter bufferedWriter=null;

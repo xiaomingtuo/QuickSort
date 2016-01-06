@@ -15,16 +15,20 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class QuickSort {
-    public static String FILE_OUTPUTPATH = "_output";
+
     public static int numLength = 2000;
     public static void main(String[] args) {
-
+        String outpath = "";
         int nThreadCount = 9;
-        String filename = "";
         for (int i = 0; i < args.length; i++) {
-            System.out.println(args[i]);
-            System.out.println(ArraysUtils.toString(ArraysUtils.toString(args[i].split("args")).split(",")));
-            //nThreadCount = Integer.parseInt(args[i]);
+            if(args[i].equals("-n")) {
+                nThreadCount = ArraysUtils.toInt(args[i + 1]);
+                System.out.println(nThreadCount);
+            }
+            if(args[i].equals("-p")) {
+                outpath = args[i + 1];
+                System.out.println(outpath);
+            }
         }
 
         // 参数处理问题
@@ -46,7 +50,7 @@ public class QuickSort {
 //         }
 
         //-------------------------------读取文件------------------------------------
-        int[] array = ArrayReader.read(RandomNumMaker.FILE_PATH);
+        int[] array = ArrayReader.read(outpath);
         //-------------------------------平分数组------------------------------------
         List<int[]> dataList = separateArray(array, nThreadCount);
         //-------------------------------把线程放到list中管理，启动线程-------------
@@ -95,7 +99,7 @@ public class QuickSort {
         int[] out = MergeSort.mergeSort(dataList);
         //-------------------------------产生文件------------------------------------
         try {
-            numMaker.makefile(out, FILE_OUTPUTPATH);
+            numMaker.makefile(out, getoutpath(outpath));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,6 +152,20 @@ public class QuickSort {
         return als_array;
     }
 
+    public static String getoutpath(String path){
+        File file = new File(path);
+        if (!file.exists()) {
+            System.out.println("the file not exist!");
+            return null;
+        }
+        String file_name =file.getName();
+        String root_path = file.getParent();
+        String file_name_nosuffix = file_name.substring(0, file_name.lastIndexOf("."));
+        String file_name_suffix = file_name.substring(file_name.lastIndexOf("."));
+        String outpath = "_output";
+        outpath = root_path+file_name_nosuffix+outpath+file_name_suffix;
+        return outpath;
+    }
     private static class ArrayReader {
 
         public static int[] read(String path) {
@@ -163,7 +181,8 @@ public class QuickSort {
             String root_path = file.getParent();
             String file_name_nosuffix = file_name.substring(0, file_name.lastIndexOf("."));
             String file_name_suffix = file_name.substring(file_name.lastIndexOf("."));
-            FILE_OUTPUTPATH = root_path+file_name_nosuffix+FILE_OUTPUTPATH+file_name_suffix;
+            String outpath = "_output";
+            outpath = root_path+file_name_nosuffix+outpath+file_name_suffix;
 
             BufferedReader bufferedReader = null;
             try {
