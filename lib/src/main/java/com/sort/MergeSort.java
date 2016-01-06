@@ -1,6 +1,7 @@
 package com.sort;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Administrator on 2015/12/31.
@@ -12,9 +13,10 @@ public class MergeSort {
             return null;
 
         int size = dataList.size();
-        int[] next = null;
-        for (int i = 0; i < size; i++) {
-            next = merge(next, dataList.get(i));
+        int[] next = dataList.get(0);
+        for (int i = 1; i < size; i++) {
+            next = merge(next, dataList.get(i));//归并
+            SortTask_C.quickSort(next);         //排序
         }
 
         return next;

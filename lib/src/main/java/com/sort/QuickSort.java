@@ -1,40 +1,34 @@
 package com.sort;
 
-import com.sort.MergeSort;
-import com.sort.RandomNumMaker;
-import com.sort.SortTask_C;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
-
-import javax.sound.sampled.DataLine;
 
 public class QuickSort {
     public static String FILE_OUTPUTPATH = "_output";
     public static int numLength = 2000;
     public static void main(String[] args) {
+
         int nThreadCount = 10;
         String filename = "";
         for (int i = 0; i < args.length; i++) {
             System.out.println(args[i]);
-            nThreadCount = Integer.parseInt(args[0]);
+            System.out.println(ArraysUtils.toString(ArraysUtils.toString(args[i].split("args")).split(",")));
+            //nThreadCount = Integer.parseInt(args[i]);
         }
-
+        if(true){
+            return;
+        }
         // 参数处理问题
         // 文件名处理
 
@@ -43,7 +37,9 @@ public class QuickSort {
         }else if(nThreadCount<2){
             nThreadCount = 2;
         }
-
+        CountDownLatch countDownLatch = new CountDownLatch(10);
+        countDownLatch.countDown();
+        ChildSemaphore childSemaphore = new ChildSemaphore(1,nThreadCount);
         final AtomicInteger atomicInteger = new AtomicInteger(nThreadCount);
         RandomNumMaker numMaker = new RandomNumMaker();
         //-------------------------------产生随机数文件------------------------------------
@@ -59,8 +55,9 @@ public class QuickSort {
         List<int[]> dataList = separateArray(array, nThreadCount);
         //-------------------------------把线程放到list中管理，启动线程-------------
         List<Thread> threadList = new ArrayList<Thread>();
+
         for (int i = 0; i < nThreadCount; i++) {
-            Thread thread = new Thread(new SortTask_C(dataList.get(i), atomicInteger));
+            Thread thread = new Thread(new SortTask_C(dataList.get(i), atomicInteger,childSemaphore));
             threadList.add(thread);
         }
 
@@ -69,7 +66,7 @@ public class QuickSort {
         }
         //-------------------------------等待线程结束------------------------------------
         // 稍显复杂，有待优化
-        System.out.println(atomicInteger.get());
+/*        System.out.println(atomicInteger.get());
         while (atomicInteger.get() > 0) {
             System.out.println("left counter: " + atomicInteger.get());
             try {
@@ -79,7 +76,22 @@ public class QuickSort {
             }
             System.out.println("thread " + " is waiting....");
         }
+        System.out.println("all Threads are finished");*/
+
+
+
+        while (childSemaphore.getCounts()>0){
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("thread " + " is waiting....");
+        }
         System.out.println("all Threads are finished");
+
+
+
         //-------------------------------归并排序------------------------------------
         int[] out = MergeSort.mergeSort(dataList);
         //-------------------------------产生文件------------------------------------

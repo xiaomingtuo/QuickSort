@@ -7,31 +7,37 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class SortTask_C implements Runnable {
 	private final int[] array;
-	public int low, high;
-	//private final int start;
-	//private final int end;
-	//private int middle;
-	Lock lock = new ReentrantLock();
-//	public SortTask_C(int[] array,int start, int end) {
-//		//this.low = start;
-//		//this.high = end;
-//		this.array = array;
-//	}
-	final AtomicInteger mCounter;
-
-	public SortTask_C(int[] array, AtomicInteger counter) {
+	private final ChildSemaphore childSemaphore;
+	private final AtomicInteger mCounter;
+	public SortTask_C(int[] array, AtomicInteger counter,ChildSemaphore childSemaphore) {
 		this.array = array;
 		this.mCounter = counter;
+		this.childSemaphore = childSemaphore;
 	}
+
+	//	public SortTask_C(int[] array, AtomicInteger counter) {
+//		this.array = array;
+//		this.mCounter = counter;
+//	}
 	@Override
 	public void  run() {
-		quickSort(array,0,array.length-1);
-		mCounter.decrementAndGet();
+		//quickSort(array,0,array.length-1);
+		//mCounter.decrementAndGet();
+		try {
+			childSemaphore.acquire();
+			System.out.println("acquire");
+			quickSort(array, 0, array.length-1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}finally {
+			childSemaphore.release();
+			System.out.println("release");
+		}
 	}
-	public void quickSort(int[] arr) {
+	public static void quickSort(int[] arr) {
 		quickSort(arr,0,arr.length-1);
 	}
-	public void quickSort(int[] arr, int low, int high) {
+	public static void quickSort(int[] arr, int low, int high) {
 		if(low<high){
 			int middle = getMiddle(arr,low,high);
 			quickSort(arr,low,middle-1);
@@ -39,7 +45,7 @@ public class SortTask_C implements Runnable {
 		}
 	}
 
-	public int getMiddle(int[] arr,int low,int high) {
+	public static int getMiddle(int[] arr,int low,int high) {
 		if (low < high) {
 			int temp = arr[low];// 基准元素
 			while (low < high) {
