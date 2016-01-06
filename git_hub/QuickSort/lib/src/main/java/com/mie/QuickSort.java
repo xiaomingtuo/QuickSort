@@ -133,7 +133,7 @@ public class QuickSort {
         }
         // 最后一个数组要加上整个数组平分成nThreads份后多出的几个数
         for (int i = 0; i < remainder; i++) {
-            als_array.get(nThreads - 1)[divisor + i] = 22;
+            als_array.get(nThreads - 1)[divisor + i] = array[count*divisor+i];
         }
         /*// 打印数组内容
         for (int i = 0; i < als_array.size(); i++) {
