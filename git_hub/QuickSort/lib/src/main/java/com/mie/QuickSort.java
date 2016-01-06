@@ -19,7 +19,7 @@ public class QuickSort {
     public static int numLength = 2000;
     public static void main(String[] args) {
 
-        int nThreadCount = 10;
+        int nThreadCount = 9;
         String filename = "";
         for (int i = 0; i < args.length; i++) {
             System.out.println(args[i]);
@@ -35,7 +35,7 @@ public class QuickSort {
         }else if(nThreadCount<2){
             nThreadCount = 2;
         }
-        ChildSemaphore childSemaphore = new ChildSemaphore(1,nThreadCount);
+        CountDownLatch countDownLatch = new CountDownLatch(nThreadCount);
         final AtomicInteger atomicInteger = new AtomicInteger(nThreadCount);
         RandomNumMaker numMaker = new RandomNumMaker();
         //-------------------------------产生随机数文件------------------------------------
@@ -53,14 +53,14 @@ public class QuickSort {
         List<Thread> threadList = new ArrayList<Thread>();
 
         for (int i = 0; i < nThreadCount; i++) {
-            Thread thread = new Thread(new SortTask_C(dataList.get(i), atomicInteger,childSemaphore));
+            Thread thread = new Thread(new SortTask_C(dataList.get(i), atomicInteger,countDownLatch));
             threadList.add(thread);
         }
 
         for (Iterator<Thread> iterator = threadList.iterator(); iterator.hasNext();) {
             iterator.next().start();
         }
-        //-------------------------------等待线程结束------------------------------------
+        //-------------------------------等待线程结束》》》sleep------------------------------------
         // 稍显复杂，有待优化
 /*        System.out.println(atomicInteger.get());
         while (atomicInteger.get() > 0) {
@@ -73,10 +73,8 @@ public class QuickSort {
             System.out.println("thread " + " is waiting....");
         }
         System.out.println("all Threads are finished");*/
-
-
-
-        while (childSemaphore.getCounts()>0){
+        //-----------------------------等待线程结束》》》》信号量--------------------
+        /*while (childSemaphore.getCounts()>0){
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
@@ -84,9 +82,14 @@ public class QuickSort {
             }
             System.out.println("thread " + " is waiting....");
         }
+        System.out.println("all Threads are finished");*/
+        //-------------------------------等待线程结束》》》》CountdownLatch---------------------------------------------
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("all Threads are finished");
-
-
 
         //-------------------------------归并排序------------------------------------
         int[] out = MergeSort.mergeSort(dataList);
@@ -128,7 +131,7 @@ public class QuickSort {
         for (int i = 0; i < remainder; i++) {
             als_array.get(nThreads - 1)[divisor + i] = 22;
         }
-        // 打印数组长度
+        /*// 打印数组内容
         for (int i = 0; i < als_array.size(); i++) {
             for (int j = 0; j < divisor; j++) {
                 System.out.println(als_array.get(i)[j]);
@@ -138,10 +141,10 @@ public class QuickSort {
                 }
             }
         }
-
+        // 打印数组长度
         for (int i = 0; i < als_array.size(); i++) {
             System.out.println(als_array.get(i).length);
-        }
+        }*/
         return als_array;
     }
 
@@ -187,7 +190,7 @@ public class QuickSort {
             }
             if (read.length > 0) {
                 System.out.println("read file success");
-                System.out.println(read.length);
+                //System.out.println(read.length);
             }
             return read;
         }

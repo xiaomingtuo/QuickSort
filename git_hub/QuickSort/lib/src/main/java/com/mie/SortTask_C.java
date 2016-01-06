@@ -1,18 +1,19 @@
 package com.mie;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SortTask_C implements Runnable {
 	private final int[] array;
-	private final ChildSemaphore childSemaphore;
 	private final AtomicInteger mCounter;
-	public SortTask_C(int[] array, AtomicInteger counter,ChildSemaphore childSemaphore) {
+	private final CountDownLatch countDownLatch;
+	public SortTask_C(int[] array, AtomicInteger counter,CountDownLatch countDownLatch) {
 		this.array = array;
 		this.mCounter = counter;
-		this.childSemaphore = childSemaphore;
+		this.countDownLatch = countDownLatch;
 	}
 
 	//	public SortTask_C(int[] array, AtomicInteger counter) {
@@ -24,14 +25,12 @@ public class SortTask_C implements Runnable {
 		//quickSort(array,0,array.length-1);
 		//mCounter.decrementAndGet();
 		try {
-			childSemaphore.acquire();
-			System.out.println("acquire");
 			quickSort(array, 0, array.length-1);
-		} catch (InterruptedException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}finally {
-			childSemaphore.release();
-			System.out.println("release");
+			countDownLatch.countDown();
+			//System.out.println(countDownLatch.getCount());
 		}
 	}
 	public static void quickSort(int[] arr) {
